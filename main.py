@@ -1,88 +1,108 @@
-# -*- coding:utf-8 -*-
-import csv
-import openpyxl
-import time
-import math
-class Filter_args:
-    def __init__(self):
-        self.file_name="臺鐵每日各站分時OD資料(O).csv" #你要搜尋的檔案名稱
-        #-----------------改這裡除了台北,板橋,一次放一到兩個就好--------------------
-        self.originStationNames=["板橋"]#,"萬華","臺北","板橋","浮洲","樹林","南樹林","山佳","鶯歌","桃園","內壢","中壢"]
-        self.needed_field=["TripDate","TripHour","OriginStationName","DestinationStationName","Volume"]
-    
-def filter(args):
-    
-    wbs=dict()
-    counts=dict()
-    for name in  args.originStationNames:
-        wbs[name]=openpyxl.Workbook()
-        counts[name]=0
-        
-    #create_sheet with station name as the id 
-    
-        
-    
-    # 開啟 CSV 檔案
-    with open(args.file_name, newline='',encoding="utf-8") as csvfile:
-        
-        '''抓header'''
-        list_rows=csv.reader(csvfile)
-        i=0
-        for list_row in list_rows:
-            if i==0:
-                chinese_header=list_row
-                i+=1
-            elif i==1:
-                english_header=list_row
-                i+=1
-            else:
-                break
-        print(chinese_header)
-        print(english_header)
-        dic_english_to_chinese_header=dict(zip(english_header,chinese_header))
-        dic_chinese_to_english_header=dict(zip(chinese_header,english_header))
-        
-        needed_header=[]
-        for item in args.needed_field:
-            needed_header.append(dic_english_to_chinese_header[item])
-        
-        
-        
-        # 讀取 CSV 檔案內容
-        dict_rows = csv.DictReader(csvfile,fieldnames=english_header)
-        for row in dict_rows:
-            for name in args.originStationNames:
-                if (row["OriginStationName"]==name):
-                    
-                    id =math.floor(counts[name]/1000000)
-                    if counts[name]%1000000==0:
-                        wbs[name].create_sheet(str(id))
-                        wbs[name][str(id)].append(needed_header)
-                    if(counts[name]==0):
-                        wbs[name].remove(wbs[name]['Sheet'])
-                    sheet=wbs[name].worksheets[id]
-                    templist=[]
-                    for item in args.needed_field:
-                        templist.append(row[item])
-                    sheet.append(templist)
-                    counts[name]=counts[name]+1
-                    
-        for name in  args.originStationNames:
-            wbs[name].save(str(name)+"臺鐵每日各站分時OD資料(O).xlsx")    
-        
 
-    
-    print("excel files are generated")
-    
+import pandas as pd
+import scipy.stats as stats
+
+from scipy.stats import chi2_contingency
+
+file_path = 'Student2008.csv'  # 設定 CSV 文件的路徑
+# 讀取一個CSV文件
+df = pd.read_csv(file_path)
+
+"""
+semester       float64
+gender          object
+collegeYear     object
+height         float64
+weight         float64
+hsGPA          float64
+collegeGPA     float64
+fincialAid      object
+tvHours        float64
+"""
 
 
+df['hsGPA'] = df['hsGPA'].astype(float)
+df['collegeGPA'] = df['collegeGPA'].astype(float)
+df['fincialAid'] = df['fincialAid'].astype(str)
+
+#本資料有些欄位缺失
+# 僅對欄位  hsGPA,collegeGPA填補缺失值
+
+# 使用平均值填充缺失值
+df['hsGPA'] = df['hsGPA'].fillna(df['hsGPA'].mean())
+df['collegeGPA'] = df['collegeGPA'].fillna(df['collegeGPA'].mean())
+
+
+
+
+def calculate_correlation(column1, column2):
     
     
-if __name__=="__main__":
-    start_time = time.time()
-    args=Filter_args()
-    filter(args)
-    print("幹你伯公你跑了")
-    print(str((time.time()-start_time)/60)+"分鐘")
     
-            
+    
+    # 提取指定欄位的數據
+    data1 = df[column1]
+    data2 = df[column2]
+    
+    # 計算相關係數
+    correlation = data1.corr(data2)
+    
+    return correlation
+
+
+def independent_t_test(data1, data2):
+    t_statistic, p_value = stats.ttest_ind(data1, data2)
+    return t_statistic, p_value
+
+# 測試程式碼
+
+column1="hsGPA"
+column2="collegeGPA"
+correlation = calculate_correlation( column1, column2)
+print('\n1.')
+print(f"The correlation coefficient between {column1} and {column2} is: {correlation}")
+
+male_gpa =  df.loc[df['gender'] =='M', 'collegeGPA']# 男生的collegeGPA資料
+female_gpa = df.loc[df['gender'] =='F', 'collegeGPA']# 女生的collegeGPA資料
+
+
+t_statistic, p_value = independent_t_test(male_gpa, female_gpa)
+print('\n3.')
+print(f"T-Statistic: {t_statistic}")
+print(f"P-Value: {p_value}")
+# 檢查是否拒絕虛無假設
+alpha = 0.05
+print(f"alpha: {alpha}")
+# 檢查是否拒絕虛無假設
+if p_value < alpha:
+    print("Reject the null hypothesis")
+else:
+    print("Fail to reject the null hypothesis")
+    
+    
+
+
+# 創建示例 DataFrame
+
+data = {'Gender': df["gender"],
+        'Scholarship': df["fincialAid"]}
+df = pd.DataFrame(data)
+
+# 建立列聯表
+cross_table = pd.crosstab(df['Gender'], df['Scholarship'])
+
+# 執行卡方檢定
+chi2, p_value, _, _ = chi2_contingency(cross_table)
+print('\n7.')
+# 顯示結果
+print("Chi-square statistic:", chi2)
+print("p-value:", p_value)
+
+# 檢查是否拒絕虛無假設
+alpha = 0.05
+
+print(f"alpha: {alpha}")
+if p_value < alpha:
+    print("Reject the null hypothesis")
+else:
+    print("Fail to reject the null hypothesis")
