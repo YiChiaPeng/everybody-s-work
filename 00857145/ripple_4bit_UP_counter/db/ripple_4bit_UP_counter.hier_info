@@ -1,0 +1,62 @@
+|sametime_counter_12bit
+A <= counter:inst.A
+EN => counter:inst.EN
+CLK => counter:inst.CLK
+CLK => counter:inst1.CLK
+CLK => counter:inst2.CLK
+B <= counter:inst.B
+C <= counter:inst.C
+D <= counter:inst.D
+E <= counter:inst1.A
+F <= counter:inst1.B
+G <= counter:inst1.C
+H <= counter:inst1.D
+I <= counter:inst2.A
+J <= counter:inst2.B
+K <= counter:inst2.C
+L <= counter:inst2.D
+CAS <= counter:inst2.CAS
+
+
+|sametime_counter_12bit|counter:inst
+A <= inst.DB_MAX_OUTPUT_PORT_TYPE
+EN => inst.IN0
+EN => inst4.IN1
+CLK => inst.CLK
+CLK => inst1.CLK
+CLK => inst2.CLK
+CLK => inst3.CLK
+B <= inst1.DB_MAX_OUTPUT_PORT_TYPE
+C <= inst2.DB_MAX_OUTPUT_PORT_TYPE
+D <= inst3.DB_MAX_OUTPUT_PORT_TYPE
+CAS <= inst7.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|sametime_counter_12bit|counter:inst1
+A <= inst.DB_MAX_OUTPUT_PORT_TYPE
+EN => inst.IN0
+EN => inst4.IN1
+CLK => inst.CLK
+CLK => inst1.CLK
+CLK => inst2.CLK
+CLK => inst3.CLK
+B <= inst1.DB_MAX_OUTPUT_PORT_TYPE
+C <= inst2.DB_MAX_OUTPUT_PORT_TYPE
+D <= inst3.DB_MAX_OUTPUT_PORT_TYPE
+CAS <= inst7.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|sametime_counter_12bit|counter:inst2
+A <= inst.DB_MAX_OUTPUT_PORT_TYPE
+EN => inst.IN0
+EN => inst4.IN1
+CLK => inst.CLK
+CLK => inst1.CLK
+CLK => inst2.CLK
+CLK => inst3.CLK
+B <= inst1.DB_MAX_OUTPUT_PORT_TYPE
+C <= inst2.DB_MAX_OUTPUT_PORT_TYPE
+D <= inst3.DB_MAX_OUTPUT_PORT_TYPE
+CAS <= inst7.DB_MAX_OUTPUT_PORT_TYPE
+
+
